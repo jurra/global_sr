@@ -1,0 +1,353 @@
+//Reading dataset
+var MOD44B = ee.ImageCollection('MODIS/006/MOD44B');
+print(MOD44B)
+
+//Selecting the time period
+var MOD44B_tree = MOD44B.select('Percent_Tree_Cover').filterDate('2000-01-01', '2020-12-31')
+var MOD44B_tree = MOD44B_tree.mean()	//Stats-mean
+var MOD44B_tree_res = MOD44B_tree.resample('bilinear').reproject({
+  crs: MOD44B_tree.projection().crs(), scale: 1110 //0.1 deg = 1.110 km or 1110 m
+    // crs: MOD44B_tree.projection().crs(), scale: 27750 //0.25 deg = 27.750 km or 27750 m
+}); 
+
+var MOD44B_nontree = MOD44B.select('Percent_NonTree_Vegetation').filterDate('2000-01-01', '2020-12-31')
+var MOD44B_nontree = MOD44B_nontree.mean()	//Stats-mean
+var MOD44B_nontree_res = MOD44B_nontree.resample('bilinear').reproject({
+    crs: MOD44B_nontree.projection().crs(), scale: 1110 //0.1 deg = 1.110 km or 1110 m
+  // crs: MOD44B_nontree.projection().crs(), scale: 27750 //0.25 deg = 27.750 km or 27750 m
+}); 
+
+
+// load all shapefiles
+var shp1 = ee.FeatureCollection('users/fransjevanoorschot/gsim_shapes/merged_gpd_selected_catchments_0_1000')
+var shp2 = ee.FeatureCollection('users/fransjevanoorschot/gsim_shapes/merged_gpd_selected_catchments_1000_2000')
+var shp3 = ee.FeatureCollection('users/fransjevanoorschot/gsim_shapes/merged_gpd_selected_catchments_2000_3000')
+var shp4 = ee.FeatureCollection('users/fransjevanoorschot/gsim_shapes/merged_gpd_selected_catchments_3000_4000')
+var shp5 = ee.FeatureCollection('users/fransjevanoorschot/gsim_shapes/merged_gpd_selected_catchments_4000_5000')
+var shp6 = ee.FeatureCollection('users/fransjevanoorschot/gsim_shapes/merged_gpd_selected_catchments_5000_6000')
+var shp7 = ee.FeatureCollection('users/fransjevanoorschot/gsim_shapes/merged_gpd_selected_catchments_6000_7000')
+var shp8 = ee.FeatureCollection('users/fransjevanoorschot/gsim_shapes/merged_gpd_selected_catchments_7000_8437')
+var shp9 = ee.FeatureCollection('users/fransjevanoorschot/gsim_shapes/CAMELS_AUS_Boundaries_adopted')
+
+
+//visualise
+var visualization = {bands: ['Percent_Tree_Cover'],
+  min: 0.0, max: 100.0, palette: ['bbe029', '0a9501', '074b03']
+};
+
+var visualization2 = {bands: ['Percent_NonTree_Vegetation'],
+  min: 0.0, max: 100.0, palette: ['bbe029', '0a9501', '074b03']
+};
+Map.addLayer(MOD44B_nontree_res, visualization2, 'MOD44B_nontree_res');
+Map.addLayer(MOD44B_tree_res, visualization, 'MOD44B_tree_res');
+Map.addLayer(shp1, visualization, 'shp1');
+
+// define reducers
+// Combine the mean and standard deviation reducers.
+var reducers = ee.Reducer.mean().combine({
+  reducer2: ee.Reducer.stdDev(),
+  sharedInputs: true
+}).combine({
+  reducer2: ee.Reducer.max(),
+  sharedInputs: true
+}).combine({
+  reducer2: ee.Reducer.min(),
+  sharedInputs: true
+});
+
+
+// TREE COVER
+// get mean values per catchment - https://geohackweek.github.io/GoogleEarthEngine/04-reducers/
+shp1
+var mean_shp1 = MOD44B_tree_res.reduceRegions({
+  collection: shp1,
+  reducer: reducers,
+  scale: 1110 
+});
+print(mean_shp1);
+
+// Table to Drive Export Example
+Export.table.toDrive({
+  collection: mean_shp1,
+  description: 'Tree_cover_shp_0_1000',
+  folder: 'treecover_gsim',
+  fileFormat: 'CSV'
+});   
+
+// shp2
+var mean_shp2 = MOD44B_tree_res.reduceRegions({
+  collection: shp2,
+  reducer: reducers,
+  scale: 1110
+});
+print(mean_shp2);
+
+// Table to Drive Export Example
+Export.table.toDrive({
+  collection: mean_shp2,
+  description: 'Tree_cover_shp_1000_2000',
+  folder: 'treecover_gsim',
+  fileFormat: 'CSV'
+});   
+
+// shp3
+var mean_shp3 = MOD44B_tree_res.reduceRegions({
+  collection: shp3,
+  reducer: reducers,
+  scale: 1110 
+});
+print(mean_shp3);
+
+// Table to Drive Export Example
+Export.table.toDrive({
+  collection: mean_shp3,
+  description: 'Tree_cover_shp_2000_3000',
+  folder: 'treecover_gsim',
+  fileFormat: 'CSV'
+});   
+
+// shp4
+var mean_shp4 = MOD44B_tree_res.reduceRegions({
+  collection: shp4,
+  reducer: reducers,
+  scale: 1110 
+});
+print(mean_shp4);
+
+// Table to Drive Export Example
+Export.table.toDrive({
+  collection: mean_shp4,
+  description: 'Tree_cover_shp_3000_4000',
+  folder: 'treecover_gsim',
+  fileFormat: 'CSV'
+});   
+
+// shp5
+var mean_shp5 = MOD44B_tree_res.reduceRegions({
+  collection: shp5,
+  reducer: reducers,
+  scale: 1110 
+});
+print(mean_shp5);
+
+// Table to Drive Export Example
+Export.table.toDrive({
+  collection: mean_shp5,
+  description: 'Tree_cover_shp_4000_5000',
+  folder: 'treecover_gsim',
+  fileFormat: 'CSV'
+});   
+
+// shp6
+var mean_shp6 = MOD44B_tree_res.reduceRegions({
+  collection: shp6,
+  reducer: reducers,
+  scale: 1110 
+});
+print(mean_shp6);
+
+// Table to Drive Export Example
+Export.table.toDrive({
+  collection: mean_shp6,
+  description: 'Tree_cover_shp_6000_7000',
+  folder: 'treecover_gsim',
+  fileFormat: 'CSV'
+});   
+
+// shp7
+var mean_shp7 = MOD44B_tree_res.reduceRegions({
+  collection: shp7,
+  reducer: reducers,
+  scale: 1110 
+});
+print(mean_shp7);
+
+// Table to Drive Export Example
+Export.table.toDrive({
+  collection: mean_shp7,
+  description: 'Tree_cover_shp_7000_8000',
+  folder: 'treecover_gsim',
+  fileFormat: 'CSV'
+});   
+
+// shp8
+var mean_shp8 = MOD44B_tree_res.reduceRegions({
+  collection: shp8,
+  reducer: reducers,
+  scale: 1110 
+});
+print(mean_shp8);
+
+// Table to Drive Export Example
+Export.table.toDrive({
+  collection: mean_shp8,
+  description: 'Tree_cover_shp_7000_8437',
+  folder: 'treecover_gsim',
+  fileFormat: 'CSV'
+});   
+
+// shp9
+var mean_shp9 = MOD44B_tree_res.reduceRegions({
+  collection: shp9,
+  reducer: reducers,
+  scale: 1110 
+});
+print(mean_shp9);
+
+// Table to Drive Export Example
+Export.table.toDrive({
+  collection: mean_shp9,
+  description: 'Tree_cover_shp_aus',
+  folder: 'treecover_gsim',
+  fileFormat: 'CSV'
+}); 
+
+
+
+// NON TREE COVER
+// get mean values per catchment - https://geohackweek.github.io/GoogleEarthEngine/04-reducers/
+shp1
+var mean_shp1 = MOD44B_nontree_res.reduceRegions({
+  collection: shp1,
+  reducer: reducers,
+  scale: 1110 
+});
+print(mean_shp1);
+
+// Table to Drive Export Example
+Export.table.toDrive({
+  collection: mean_shp1,
+  description: 'Nontree_cover_shp_0_1000',
+  folder: 'treecover_gsim',
+  fileFormat: 'CSV'
+});   
+
+// shp2
+var mean_shp2 = MOD44B_nontree_res.reduceRegions({
+  collection: shp2,
+  reducer: reducers,
+  scale: 1110 
+});
+print(mean_shp2);
+
+// Table to Drive Export Example
+Export.table.toDrive({
+  collection: mean_shp2,
+  description: 'Nontree_cover_shp_1000_2000',
+  folder: 'treecover_gsim',
+  fileFormat: 'CSV'
+});   
+
+// shp3
+var mean_shp3 = MOD44B_nontree_res.reduceRegions({
+  collection: shp3,
+  reducer: reducers,
+  scale: 1110 
+});
+print(mean_shp3);
+
+// Table to Drive Export Example
+Export.table.toDrive({
+  collection: mean_shp3,
+  description: 'Nontree_cover_shp_2000_3000',
+  folder: 'treecover_gsim',
+  fileFormat: 'CSV'
+});   
+
+// shp4
+var mean_shp4 = MOD44B_nontree_res.reduceRegions({
+  collection: shp4,
+  reducer: reducers,
+  scale: 1110 
+});
+print(mean_shp4);
+
+// Table to Drive Export Example
+Export.table.toDrive({
+  collection: mean_shp4,
+  description: 'Nontree_cover_shp_3000_4000',
+  folder: 'treecover_gsim',
+  fileFormat: 'CSV'
+});   
+
+// shp5
+var mean_shp5 = MOD44B_nontree_res.reduceRegions({
+  collection: shp5,
+  reducer: reducers,
+  scale: 1110 
+});
+print(mean_shp5);
+
+// Table to Drive Export Example
+Export.table.toDrive({
+  collection: mean_shp5,
+  description: 'Nontree_cover_shp_4000_5000',
+  folder: 'treecover_gsim',
+  fileFormat: 'CSV'
+});   
+
+// shp6
+var mean_shp6 = MOD44B_nontree_res.reduceRegions({
+  collection: shp6,
+  reducer: reducers,
+  scale: 1110 
+});
+print(mean_shp6);
+
+// Table to Drive Export Example
+Export.table.toDrive({
+  collection: mean_shp6,
+  description: 'Nontree_cover_shp_5000_6000',
+  folder: 'treecover_gsim',
+  fileFormat: 'CSV'
+});   
+
+// shp7
+var mean_shp7 = MOD44B_nontree_res.reduceRegions({
+  collection: shp7,
+  reducer: reducers,
+  scale: 1110 
+});
+print(mean_shp7);
+
+// Table to Drive Export Example
+Export.table.toDrive({
+  collection: mean_shp7,
+  description: 'Nontree_cover_shp_6000_7000',
+  folder: 'treecover_gsim',
+  fileFormat: 'CSV'
+});   
+
+// shp8
+var mean_shp8 = MOD44B_nontree_res.reduceRegions({
+  collection: shp8,
+  reducer: reducers,
+  scale: 1110 
+});
+print(mean_shp8);
+
+// Table to Drive Export Example
+Export.table.toDrive({
+  collection: mean_shp8,
+  description: 'Nontree_cover_shp_7000_8437',
+  folder: 'treecover_gsim',
+  fileFormat: 'CSV'
+});   
+
+// shp9
+var mean_shp9 = MOD44B_nontree_res.reduceRegions({
+  collection: shp9,
+  reducer: reducers,
+  scale: 1110 
+});
+print(mean_shp9);
+
+// Table to Drive Export Example
+Export.table.toDrive({
+  collection: mean_shp9,
+  description: 'Nontree_cover_shp_aus',
+  folder: 'treecover_gsim',
+  fileFormat: 'CSV'
+});   
+
+
